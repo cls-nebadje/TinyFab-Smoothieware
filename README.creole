@@ -2,7 +2,7 @@ Current build status: {{https://travis-ci.com/GewoonMaarten/Smoothieware.svg?bra
 
 ==Overview
 **This is a fork of Smoothieware.
-It is updated to work with the TinyFab LCD and termistor. 
+It is updated to work with the TinyFab CPU, LCD and termistor. 
 You can find more information on the [[https://www.tinyfab.xyz/|website of TinyFab]].**
 
 Smoothie is a free, opensource, high performance G-code interpreter and CNC controller written in Object-Oriented C++ for the LPC17xx micro-controller ( ARM Cortex M3 architecture ). It will run on a mBed, a LPCXpresso, a SmoothieBoard, R2C2 or any other LPC17xx-based board. The motion control part is a port of the awesome grbl.
