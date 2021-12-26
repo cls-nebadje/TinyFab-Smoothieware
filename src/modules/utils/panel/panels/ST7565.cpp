@@ -247,9 +247,10 @@ void ST7565::clear()
 
 void ST7565::send_pic(const unsigned char *data)
 {
+    int xoffset = reversed ? 0 : 4;
     for (int i = 0; i < LCDPAGES; i++)
     {
-        set_xy(0 + 4, i);
+        set_xy(xoffset, i);
         send_data(data + i * LCDWIDTH, LCDWIDTH);
     }
 }
