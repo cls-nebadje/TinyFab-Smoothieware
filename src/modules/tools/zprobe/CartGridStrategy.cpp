@@ -159,7 +159,7 @@ bool CartGridStrategy::handleConfig()
     this->height_limit = THEKERNEL->config->value(leveling_strategy_checksum, cart_grid_leveling_strategy_checksum, height_limit_checksum)->by_default(NAN)->as_number();
     this->dampening_start = THEKERNEL->config->value(leveling_strategy_checksum, cart_grid_leveling_strategy_checksum, dampening_start_checksum)->by_default(NAN)->as_number();
 
-    if(!isnan(this->height_limit) && !isnan(this->dampening_start)) {
+    if(!isnan(this->height_limit) && !isnan(this->dampening_start) && this->height_limit > 0.0001F) {
         this->damping_interval = height_limit - dampening_start;
     } else {
         this->damping_interval = NAN;
@@ -454,6 +454,11 @@ bool CartGridStrategy::handleGcode(Gcode *gcode)
         } else if(gcode->m == 375) { // M375: load grid, M375.1 display grid
             if(gcode->subcode == 1) {
                 print_bed_level(gcode->stream);
+                if(THEROBOT->compensationTransform == nullptr){
+                    gcode->stream->printf("Grid is currently disabled\n");
+                }else{
+                    gcode->stream->printf("Grid is currently enabled\n");
+                }
             } else {
                 __disable_irq();
                 if(load_grid(gcode->stream)) setAdjustFunction(true);
@@ -593,9 +598,9 @@ bool CartGridStrategy::doProbe(Gcode *gc)
             if(use_wcs) {
                 float xo = gc->get_value('X'); // offset current start position
                 float yo = gc->get_value('Y');
-                // NOTE as we are positioning the probe we need to reverse offset for the probe offset
-                this->x_start = THEROBOT->get_axis_position(X_AXIS) + xo + X_PROBE_OFFSET_FROM_EXTRUDER;
-                this->y_start = THEROBOT->get_axis_position(Y_AXIS) + yo + Y_PROBE_OFFSET_FROM_EXTRUDER;
+                // NOTE we are positioning the head, in case there is a probe offset
+                this->x_start = THEROBOT->get_axis_position(X_AXIS) + xo;
+                this->y_start = THEROBOT->get_axis_position(Y_AXIS) + yo;
             }else{
                 this->x_start = gc->get_value('X'); // override default probe start point
                 this->y_start = gc->get_value('Y'); // override default probe start point
@@ -738,7 +743,7 @@ void CartGridStrategy::doCompensation(float *target, bool inverse)
 
     // we need to make sure that floor_x and floor_y are always < grid_size-1
     float grid_x = std::max(0.001F, std::min(this->current_grid_x_size - 1.001F, (x_target - this->x_start) / (this->x_size / (this->current_grid_x_size - 1))));
-    float grid_y = std::max(0.001F, std::min(this->current_grid_x_size - 1.001F, (y_target - this->y_start) / (this->y_size / (this->current_grid_y_size - 1))));
+    float grid_y = std::max(0.001F, std::min(this->current_grid_y_size - 1.001F, (y_target - this->y_start) / (this->y_size / (this->current_grid_y_size - 1))));
     int floor_x = floorf(grid_x);
     int floor_y = floorf(grid_y);
     float ratio_x = grid_x - floor_x;
